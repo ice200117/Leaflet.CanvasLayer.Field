@@ -41,6 +41,33 @@ export default class ScalarField extends Field {
     }
 
     /**
+     * Creates a ScalarField from the content of an PNG file
+     * @param   {String}   res
+     * @returns {ScalarField}
+     */
+    static fromPNGGrid(res) {
+        // Header
+        var header = {
+            nCols: res.header.nx,
+            nRows: res.header.ny,
+            xllCorner: res.header.lo1,
+            yllCorner: res.header.la2,
+            cellXSize: res.header.dx,
+            cellYSize: res.header.dy,
+            noDataValue: 7e+37
+        };
+
+        // Data (left-right and top-down)
+        let zs = res.data;
+        for (let i = 0; i < zs.length; i++) {
+            if(zs[i] == header.noDataValue) zs[i] = null;
+        }
+        let p = header;
+        p.zs = zs;
+        return new ScalarField(p);
+    }
+
+    /**
      * Parse an ASCII Grid header, made with 6 lines
      * It allows the use of XLLCORNER/YLLCORNER or XLLCENTER/YLLCENTER conventions
      * @param {Array.String} headerLines

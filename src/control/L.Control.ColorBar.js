@@ -18,6 +18,7 @@ L.Control.ColorBar = L.Control.extend({
         title: 'Legend', // ej: Ocean Currents
         labels: [], // empty for no labels
         labelFontSize: 10,
+        cb: null,
         labelTextPosition: 'middle' // start | middle | end
     },
 
@@ -27,22 +28,27 @@ L.Control.ColorBar = L.Control.extend({
         L.Util.setOptions(this, options);
     },
 
+
     onAdd: function(map) {
         this._map = map;
         let div = L.DomUtil.create(
             'div',
             'leaflet-control-colorBar leaflet-bar leaflet-control'
         );
+        this.colorBar = div;
         div.style.padding = '10px';
-
         L.DomEvent
             .addListener(div, 'click', L.DomEvent.stopPropagation)
             .addListener(div, 'click', L.DomEvent.preventDefault);
         div.style.backgroundColor = this.options.background;
         div.style.cursor = 'text';
+        this.unit = this._createUnitToggle(div);
         div.innerHTML = this.title() + this.palette();
+        L.DomEvent
+            .addListener(div, 'click', this._nextUnit, this);
         return div;
     },
+
 
     title: function() {
         let d = document.createElement('div');
@@ -53,7 +59,7 @@ L.Control.ColorBar = L.Control.extend({
             .style('display', 'block')
             .style('margin-bottom', '5px')
             .attr('class', 'leaflet-control-colorBar-title')
-            .text(this.options.title);
+            .text(this.options.title+'('+this.unit.value().label+')');
         return d.innerHTML;
     },
 
@@ -103,8 +109,8 @@ L.Control.ColorBar = L.Control.extend({
             .append('title')
             .text(
                 d =>
-                    `${d.value.toFixed(this.options.decimals)} ${this.options
-                        .units}`
+                    `${this.unit.value().conversion(d.value).toFixed(this.unit.value().precision)} ${this.unit.value().label
+                        }`
             );
     },
 
@@ -124,7 +130,7 @@ L.Control.ColorBar = L.Control.extend({
             .attr('text-anchor', this.options.labelTextPosition)
             .attr('fill', this.options.textColor)
             .attr('class', 'leaflet-control-colorBar-label')
-            .text(d => `${d.value.toFixed(this.options.decimals)}`);
+            .text(d => `${this.unit.value().conversion(d.value).toFixed(this.unit.value().precision)}`);
     },
 
     _getColorPerValue: function() {
@@ -153,7 +159,27 @@ L.Control.ColorBar = L.Control.extend({
             };
         });
         return positionPerLabel;
-    }
+    },
+
+    _createUnitToggle: function(id) {
+        var units = this.options.units, size = units.length;
+        var index = +(d3.select(id).attr('data-index') || 0) % size;
+        return {
+            value: function value() {
+                return units[index];
+            },
+            next: function next() {
+                d3.select(id).attr('data-index', index = (index + 1) % size);
+            }
+        };
+    },
+
+    _nextUnit: function(){
+        this.unit.next();
+        this.colorBar.innerHTML = this.title() + this.palette();
+        if(this.options.cb) this.options.cb();
+    },
+
 });
 
 L.control.colorBar = function(color, range, options) {
