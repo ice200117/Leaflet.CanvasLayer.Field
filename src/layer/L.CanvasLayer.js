@@ -73,6 +73,11 @@ L.CanvasLayer = L.Layer.extend({
         del.onLayerDidMount && del.onLayerDidMount(); // -- callback
 
         this.needRedraw();
+
+        var self = this;
+        setTimeout(function () {
+            self._onLayerDidMove();
+        }, 0);
     },
 
     //-------------------------------------------------------------
@@ -123,6 +128,13 @@ L.CanvasLayer = L.Layer.extend({
             corner: corner
         });
         this._frame = null;
+    },
+    // -- L.DomUtil.setTransform from leaflet 1.0.0 to work on 0.0.7
+    //------------------------------------------------------------------------------
+    _setTransform: function _setTransform(el, offset, scale) {
+        var pos = offset || new L.Point(0, 0);
+
+        el.style[L.DomUtil.TRANSFORM] = (L.Browser.ie3d ? 'translate(' + pos.x + 'px,' + pos.y + 'px)' : 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0)') + (scale ? ' scale(' + scale + ')' : '');
     },
 
     //------------------------------------------------------------------------------
