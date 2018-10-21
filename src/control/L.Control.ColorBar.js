@@ -180,6 +180,10 @@ L.Control.ColorBar = L.Control.extend({
         if(this.options.cb) this.options.cb();
     },
 
+    show: function(){
+        this.colorBar.innerHTML = this.title() + this.palette();
+    }
+
 });
 
 L.control.colorBar = function(color, range, options) {
