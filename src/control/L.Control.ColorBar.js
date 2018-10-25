@@ -19,6 +19,7 @@ L.Control.ColorBar = L.Control.extend({
         labels: [], // empty for no labels
         labelFontSize: 10,
         cb: null,
+        index: 0,
         labelTextPosition: 'middle' // start | middle | end
     },
 
@@ -26,6 +27,9 @@ L.Control.ColorBar = L.Control.extend({
         this.color = color; // 'chromajs' scale function
         this.range = range; // [min, max]
         L.Util.setOptions(this, options);
+        console.log(this.options.index);
+        d3.select(this.colorBar).attr('data-index', this.options.index);
+        if(this.colorBar) this.unit = this._createUnitToggle(this.colorBar);
     },
 
 
@@ -52,6 +56,10 @@ L.Control.ColorBar = L.Control.extend({
 
     title: function() {
         let d = document.createElement('div');
+        let lb = '';
+        if (this.unit.value().label !== ''){
+            lb = '('+this.unit.value().label+')';
+        }
         d3
             .select(d)
             .append('span')
@@ -59,7 +67,7 @@ L.Control.ColorBar = L.Control.extend({
             .style('display', 'block')
             .style('margin-bottom', '5px')
             .attr('class', 'leaflet-control-colorBar-title')
-            .text(this.options.title+'('+this.unit.value().label+')');
+            .text(this.options.title+lb);
         return d.innerHTML;
     },
 
