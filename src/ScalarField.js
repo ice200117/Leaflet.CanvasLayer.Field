@@ -58,12 +58,12 @@ export default class ScalarField extends Field {
         };
 
         // Data (left-right and top-down)
-        let zs = res.data;
-        for (let i = 0; i < zs.length; i++) {
-            if(zs[i] == header.noDataValue) zs[i] = null;
-        }
+        // let zs = res.data;
+        // for (let i = 0; i < zs.length; i++) {
+        //     if(zs[i] == header.noDataValue) zs[i] = null;
+        // }
         let p = header;
-        p.zs = zs;
+        p.zs = res.data;
         return new ScalarField(p);
     }
 

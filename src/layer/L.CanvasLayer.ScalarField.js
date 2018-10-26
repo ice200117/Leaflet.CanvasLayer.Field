@@ -82,6 +82,26 @@ L.CanvasLayer.ScalarField = L.CanvasLayer.Field.extend({
         ctx.putImageData(img, 0, 0);
     },
 
+    deg2rad(deg) {
+        return deg / 180 * Math.PI;
+    },
+
+    rad2deg(ang) {
+        return ang / (Math.PI / 180.0);
+    },
+
+    _invert(x, y, windy) {
+        var mapLonDelta = windy.east - windy.west;
+        var worldMapRadius = windy.width / this.rad2deg(mapLonDelta) * 360 / (2 * Math.PI);
+        var mapOffsetY = worldMapRadius / 2 * Math.log((1 + Math.sin(windy.south)) / (1 - Math.sin(windy.south)));
+        var equatorY = windy.height + mapOffsetY;
+        var a = (equatorY - y) / worldMapRadius;
+
+        var lat = 180 / Math.PI * (2 * Math.atan(Math.exp(a)) - Math.PI / 2);
+        var lon = this.rad2deg(windy.west) + x / windy.width * this.rad2deg(mapLonDelta);
+        return {lng: lon, lat: lat};
+    },
+
     /**
      * Prepares the image in data, as array with RGBAs
      * [R1, G1, B1, A1, R2, G2, B2, A2...]
@@ -92,11 +112,22 @@ L.CanvasLayer.ScalarField = L.CanvasLayer.Field.extend({
      */
     _prepareImageIn(data, width, height) {
         let f = this.options.interpolate ? 'interpolatedValueAt' : 'valueAt';
+        var bounds = this._map.getBounds();
+        var extent = [[bounds._southWest.lng, bounds._southWest.lat], [bounds._northEast.lng, bounds._northEast.lat]];
+        var windy = {
+            south: this.deg2rad(extent[0][1]),
+            north: this.deg2rad(extent[1][1]),
+            east:  this.deg2rad(extent[1][0]),
+            west:  this.deg2rad(extent[0][0]),
+            width: width,
+            height: height
+        };
 
         let pos = 0;
-        for (let j = 0; j < height; j++) {
-            for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j+=2) {
+            for (let i = 0; i < width; i+=2) {
                 let pointCoords = this._map.containerPointToLatLng([i, j]);
+                // let pointCoords = this._invert(i, j, windy);
                 let lon = pointCoords.lng;
                 let lat = pointCoords.lat;
 
@@ -108,9 +139,22 @@ L.CanvasLayer.ScalarField = L.CanvasLayer.Field.extend({
                     data[pos + 1] = G;
                     data[pos + 2] = B;
                     data[pos + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
+                    data[pos+4] = R;
+                    data[pos+4 + 1] = G;
+                    data[pos+4 + 2] = B;
+                    data[pos+4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
+                    data[pos+width*4] = R;
+                    data[pos+width*4 + 1] = G;
+                    data[pos+width*4 + 2] = B;
+                    data[pos+width*4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
+                    data[pos+width*4+4] = R;
+                    data[pos+width*4+4 + 1] = G;
+                    data[pos+width*4+4 + 2] = B;
+                    data[pos+width*4+4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
                 }
-                pos = pos + 4;
+                pos = pos + 4*2;
             }
+            pos = pos + width*4;
         }
     },
 
@@ -195,12 +239,12 @@ L.CanvasLayer.ScalarField = L.CanvasLayer.Field.extend({
      * Gets a chroma color for a pixel value, according to 'options.color'
      */
     _getColorFor(v) {
-        let c = this.options.color; // e.g. for a constant 'red'
-        if (typeof c === 'function') {
-            c = this.options.color(v);
-        }
-        let color = chroma(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
-        return color;
+        // let c = this.options.color; // e.g. for a constant 'red'
+        // if (typeof c === 'function') {
+            // c = this.options.color(v);
+        // }
+        // let color = chroma(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+        return this.options.color(v);
     }
 });
 
