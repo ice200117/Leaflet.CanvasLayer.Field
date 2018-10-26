@@ -112,22 +112,21 @@ L.CanvasLayer.ScalarField = L.CanvasLayer.Field.extend({
      */
     _prepareImageIn(data, width, height) {
         let f = this.options.interpolate ? 'interpolatedValueAt' : 'valueAt';
-        var bounds = this._map.getBounds();
-        var extent = [[bounds._southWest.lng, bounds._southWest.lat], [bounds._northEast.lng, bounds._northEast.lat]];
-        var windy = {
-            south: this.deg2rad(extent[0][1]),
-            north: this.deg2rad(extent[1][1]),
-            east:  this.deg2rad(extent[1][0]),
-            west:  this.deg2rad(extent[0][0]),
-            width: width,
-            height: height
-        };
-
+        // var bounds = this._map.getBounds();
+        // var extent = [[bounds._southWest.lng, bounds._southWest.lat], [bounds._northEast.lng, bounds._northEast.lat]];
+        // var windy = {
+        //     south: this.deg2rad(extent[0][1]),
+        //     north: this.deg2rad(extent[1][1]),
+        //     east:  this.deg2rad(extent[1][0]),
+        //     west:  this.deg2rad(extent[0][0]),
+        //     width: width,
+        //     height: height
+        // };
         let pos = 0;
-        for (let j = 0; j < height; j+=2) {
-            for (let i = 0; i < width; i+=2) {
+        let step = 2;     //  1 or 2
+        for (let j = 0; j < height; j+=step) {
+            for (let i = 0; i < width; i+=step) {
                 let pointCoords = this._map.containerPointToLatLng([i, j]);
-                // let pointCoords = this._invert(i, j, windy);
                 let lon = pointCoords.lng;
                 let lat = pointCoords.lat;
 
@@ -139,22 +138,26 @@ L.CanvasLayer.ScalarField = L.CanvasLayer.Field.extend({
                     data[pos + 1] = G;
                     data[pos + 2] = B;
                     data[pos + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
-                    data[pos+4] = R;
-                    data[pos+4 + 1] = G;
-                    data[pos+4 + 2] = B;
-                    data[pos+4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
-                    data[pos+width*4] = R;
-                    data[pos+width*4 + 1] = G;
-                    data[pos+width*4 + 2] = B;
-                    data[pos+width*4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
-                    data[pos+width*4+4] = R;
-                    data[pos+width*4+4 + 1] = G;
-                    data[pos+width*4+4 + 2] = B;
-                    data[pos+width*4+4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
+                    if(step>1){
+                        data[pos+4] = R;
+                        data[pos+4 + 1] = G;
+                        data[pos+4 + 2] = B;
+                        data[pos+4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
+                        data[pos+width*4] = R;
+                        data[pos+width*4 + 1] = G;
+                        data[pos+width*4 + 2] = B;
+                        data[pos+width*4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
+                        data[pos+width*4+4] = R;
+                        data[pos+width*4+4 + 1] = G;
+                        data[pos+width*4+4 + 2] = B;
+                        data[pos+width*4+4 + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
+                    }
                 }
-                pos = pos + 4*2;
+                pos = pos + 4*step;
             }
-            pos = pos + width*4;
+            let w = 0;
+            if(width%2 !== 0) w = 1;
+            pos = pos + (width-w)*(step-1)*4;
         }
     },
 
