@@ -132,42 +132,42 @@ describe('ScalarField', function() {
         });
     });
 
-    describe('Geotiff: single raster', function() {
-        let sf;
-
-        beforeEach(function(fileLoaded) {
-            d3
-                .request(`${dataFolder}/tz850.tiff`)
-                .responseType('arraybuffer')
-                .get(function(error, tiffData) {
-                    sf = ScalarField.fromGeoTIFF(tiffData.response, 0);
-                    fileLoaded();
-                });
-        });
-
-        it('can be created from one band', function() {
-            expect(sf).not.toBe(null);
-        });
-    });
-
-    describe('Geotiff: multiple raster, one from each band', function() {
-        let multipleSf;
-
-        beforeEach(function(fileLoaded) {
-            d3
-                .request(`${dataFolder}/tz850.tiff`)
-                .responseType('arraybuffer')
-                .get(function(error, tiffData) {
-                    multipleSf = ScalarField.multipleFromGeoTIFF(
-                        tiffData.response,
-                        [0, 1]
-                    );
-                    fileLoaded();
-                });
-        });
-
-        it('array can be created from several bands in file', function() {
-            expect(multipleSf.length).toBe(2);
-        });
-    });
+    // describe('Geotiff: single raster', function() {
+    //     let sf;
+    //
+    //     beforeEach(function(fileLoaded) {
+    //         d3
+    //             .request(`${dataFolder}/tz850.tiff`)
+    //             .responseType('arraybuffer')
+    //             .get(function(error, tiffData) {
+    //                 sf = ScalarField.fromGeoTIFF(tiffData.response, 0);
+    //                 fileLoaded();
+    //             });
+    //     });
+    //
+    //     it('can be created from one band', function() {
+    //         expect(sf).not.toBe(null);
+    //     });
+    // });
+    //
+    // describe('Geotiff: multiple raster, one from each band', function() {
+    //     let multipleSf;
+    //
+    //     beforeEach(function(fileLoaded) {
+    //         d3
+    //             .request(`${dataFolder}/tz850.tiff`)
+    //             .responseType('arraybuffer')
+    //             .get(function(error, tiffData) {
+    //                 multipleSf = ScalarField.multipleFromGeoTIFF(
+    //                     tiffData.response,
+    //                     [0, 1]
+    //                 );
+    //                 fileLoaded();
+    //             });
+    //     });
+    //
+    //     it('array can be created from several bands in file', function() {
+    //         expect(multipleSf.length).toBe(2);
+    //     });
+    // });
 });
