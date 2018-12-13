@@ -23,17 +23,17 @@ L.Control.ColorBar = L.Control.extend({
         labelTextPosition: 'middle' // start | middle | end
     },
 
-    initialize: function(color, range, options) {
+    initialize: function (color, range, options) {
         this.color = color; // 'chromajs' scale function
         this.range = range; // [min, max]
         L.Util.setOptions(this, options);
         console.log(this.options.index);
         d3.select(this.colorBar).attr('data-index', this.options.index);
-        if(this.colorBar) this.unit = this._createUnitToggle(this.colorBar);
+        if (this.colorBar) this.unit = this._createUnitToggle(this.colorBar);
     },
 
 
-    onAdd: function(map) {
+    onAdd: function (map) {
         this._map = map;
         let div = L.DomUtil.create(
             'div',
@@ -54,11 +54,11 @@ L.Control.ColorBar = L.Control.extend({
     },
 
 
-    title: function() {
+    title: function () {
         let d = document.createElement('div');
         let lb = '';
-        if (this.unit.value().label !== ''){
-            lb = '('+this.unit.value().label+')';
+        if (this.unit.value().label !== '') {
+            lb = '(' + this.unit.value().label + ')';
         }
         d3
             .select(d)
@@ -67,34 +67,56 @@ L.Control.ColorBar = L.Control.extend({
             .style('display', 'block')
             .style('margin-bottom', '5px')
             .attr('class', 'leaflet-control-colorBar-title')
-            .text(this.options.title+lb);
+            .text(this.options.title + lb);
         return d.innerHTML;
     },
 
-    palette: function() {
+    palette: function () {
         let d = document.createElement('div');
         let svg = this._createSvgIn(d);
-
+        let ul = this._createUlIn(d);
         this._appendColorBarTo(svg);
 
         if (this.options.labels) {
             this._appendLabelsTo(svg);
+            this._appendPhoneColorBarTo(ul);
         }
 
         return d.innerHTML;
     },
 
-    _createSvgIn: function(d) {
+    _appendPhoneColorBarTo: function _appendPhoneColorBarTo(ul) {
+        var that = this;
+        var colorList = this.options.phoneColoe;
+        var labels = this.options.labels;
+        labels.forEach(function (value, key) {
+            var currentText = that.unit.value().conversion(value);
+            if (that.unit.value().precision || that.unit.value().precision === 0) {
+                currentText = currentText.toFixed(that.unit.value().precision);
+            }
+            ul.insert('li', '.phone-color-li:nth-child(1)').attr('class', 'phone-color-li text-center')
+                .text(currentText).style('color', 'white')
+                .style('background-color', 'rgb(' + colorList[key][0] + ',' + colorList[key][1] + ',' + colorList[key][2] + ')');
+        });
+        ul.style('display', 'none');
+    },
+    _createUlIn: function _createSvgIn(d) {
+        var ul = d3.select(d).append('ul').attr('id', 'phone_ul_color_bar').style('width', '50px').attr('class', 'leaflet-control-colorBar');
+        return ul;
+    },
+
+
+    _createSvgIn: function (d) {
         let spaceForLabels = this.options.labels ? this.options.margin : 0;
         let svg = d3
             .select(d)
-            .append('svg')
+            .append('svg').attr('id', 'pc_svg_color_bar')
             .attr('width', this.options.width + this.options.margin * 2)
             .attr('height', this.options.height + spaceForLabels);
         return svg;
     },
 
-    _appendColorBarTo: function(svg) {
+    _appendColorBarTo: function (svg) {
         const colorPerValue = this._getColorPerValue();
         const w = this.options.width / colorPerValue.length;
 
@@ -122,7 +144,7 @@ L.Control.ColorBar = L.Control.extend({
             );
     },
 
-    _appendLabelsTo: function(svg) {
+    _appendLabelsTo: function (svg) {
         const positionPerLabelValue = this._getPositionPerLabelValue();
         //const w = this.options.width / colorPerValue.length;
         let groupLabels = svg.append('g').attr('id', 'colorBar-labels');
@@ -141,7 +163,7 @@ L.Control.ColorBar = L.Control.extend({
             .text(d => `${this.unit.value().conversion(d.value).toFixed(this.unit.value().precision)}`);
     },
 
-    _getColorPerValue: function() {
+    _getColorPerValue: function () {
         const [min, max] = this.range;
         let delta = (max - min) / this.options.steps;
         let data = d3.range(min, max + delta, delta);
@@ -154,7 +176,7 @@ L.Control.ColorBar = L.Control.extend({
         return colorPerValue;
     },
 
-    _getPositionPerLabelValue: function() {
+    _getPositionPerLabelValue: function () {
         var xPositionFor = d3
             .scaleLinear()
             .range([0, this.options.width])
@@ -169,7 +191,7 @@ L.Control.ColorBar = L.Control.extend({
         return positionPerLabel;
     },
 
-    _createUnitToggle: function(id) {
+    _createUnitToggle: function (id) {
         var units = this.options.units, size = units.length;
         var index = +(d3.select(id).attr('data-index') || 0) % size;
         return {
@@ -182,18 +204,18 @@ L.Control.ColorBar = L.Control.extend({
         };
     },
 
-    _nextUnit: function(){
+    _nextUnit: function () {
         this.unit.next();
         this.colorBar.innerHTML = this.title() + this.palette();
-        if(this.options.cb) this.options.cb();
+        if (this.options.cb) this.options.cb();
     },
 
-    show: function(){
+    show: function () {
         this.colorBar.innerHTML = this.title() + this.palette();
     }
 
 });
 
-L.control.colorBar = function(color, range, options) {
+L.control.colorBar = function (color, range, options) {
     return new L.Control.ColorBar(color, range, options);
 };
